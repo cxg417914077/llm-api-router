@@ -50,7 +50,9 @@ pub struct Usage {
 pub trait Provider: Send + Sync {
     fn name(&self) -> &str;
     fn endpoint(&self) -> &str;
+    #[allow(dead_code)]
     fn priority(&self) -> u32;
+    #[allow(dead_code)]
     fn ssl_verify(&self) -> bool;
 
     async fn chat_completions(
