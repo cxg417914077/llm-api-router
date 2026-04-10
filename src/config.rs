@@ -1,16 +1,20 @@
 use serde::Deserialize;
 use std::env;
+use std::collections::HashMap;
 
 use crate::error::Result;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
+    pub router: RouterConfig,
     pub server: ServerConfig,
-    #[serde(default = "default_ssl_verify")]
-    pub ssl_verify: bool,
     #[serde(default)]
-    pub failover: FailoverConfig,
-    pub providers: Vec<ProviderConfig>,
+    pub groups: HashMap<String, GroupConfig>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct RouterConfig {
+    pub api_key: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -19,6 +23,13 @@ pub struct ServerConfig {
     pub host: String,
     #[serde(default = "default_port")]
     pub port: u16,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct GroupConfig {
+    #[serde(default)]
+    pub failover: FailoverConfig,
+    pub providers: Vec<ProviderConfig>,
 }
 
 #[derive(Debug, Deserialize, Clone, Default)]
@@ -35,8 +46,10 @@ pub struct ProviderConfig {
     pub endpoint: String,
     pub api_key: String,
     pub priority: u32,
+    #[serde(default = "default_ssl_verify")]
+    pub ssl_verify: bool,
     #[serde(default)]
-    #[allow(dead_code)]  // 预留功能：未来支持按模型路由
+    #[allow(dead_code)]
     pub models: Vec<String>,
 }
 
@@ -73,8 +86,10 @@ impl Config {
             .map_err(|e| crate::error::RouterError::Config(format!("Failed to parse config: {}", e)))?;
 
         // 展开环境变量
-        for provider in &mut config.providers {
-            provider.api_key = expand_env(&provider.api_key);
+        for group in config.groups.values_mut() {
+            for provider in &mut group.providers {
+                provider.api_key = expand_env(&provider.api_key);
+            }
         }
 
         Ok(config)

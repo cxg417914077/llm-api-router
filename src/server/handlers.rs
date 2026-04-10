@@ -30,11 +30,19 @@ async fn chat_completions_handler(
 ) -> Result<Json<ChatCompletionsResponse>> {
     let mut last_attempted: Option<String> = None;
 
+    // 获取默认组（第一个组）的 providers
+    let default_group = state
+        .config
+        .groups
+        .values()
+        .next()
+        .ok_or_else(|| crate::error::RouterError::Config("No provider groups configured".to_string()))?;
+
     // 尝试每个 provider 直到成功
     loop {
         let provider = state
             .routing_engine
-            .select_provider(&state.config.providers, last_attempted.as_deref());
+            .select_provider(&default_group.providers, last_attempted.as_deref());
 
         let provider = match provider {
             Some(p) => p,

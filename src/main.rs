@@ -26,23 +26,37 @@ async fn main() -> Result<()> {
     let config = Config::load()?;
     tracing::info!("Loaded config from config.yaml");
 
+    // 获取默认组（第一个组）
+    let default_group = config
+        .groups
+        .values()
+        .next()
+        .ok_or_else(|| crate::error::RouterError::Config("No provider groups configured".to_string()))?;
+
     // 创建健康追踪器
     let health_tracker = HealthTracker::new(
-        config.failover.failure_threshold,
-        config.failover.recovery_timeout,
+        default_group.failover.failure_threshold,
+        default_group.failover.recovery_timeout,
     );
 
     // 创建路由引擎
     let routing_engine = RoutingEngine::new(health_tracker);
 
+    // 获取第一个 provider 的 ssl_verify 作为 HTTP 客户端配置
+    let ssl_verify = default_group
+        .providers
+        .first()
+        .map(|p| p.ssl_verify)
+        .unwrap_or(true);
+
     // 创建 HTTP 客户端
     let http_client = reqwest::Client::builder()
-        .danger_accept_invalid_certs(!config.ssl_verify)
+        .danger_accept_invalid_certs(!ssl_verify)
         .build()
         .map_err(error::RouterError::Network)?;
 
     // 创建 Providers
-    let providers: Vec<Arc<dyn Provider>> = config
+    let providers: Vec<Arc<dyn Provider>> = default_group
         .providers
         .iter()
         .map(|c| {
