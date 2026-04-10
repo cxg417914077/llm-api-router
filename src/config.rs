@@ -36,6 +36,7 @@ pub struct ProviderConfig {
     pub api_key: String,
     pub priority: u32,
     #[serde(default)]
+    #[allow(dead_code)]  // 预留功能：未来支持按模型路由
     pub models: Vec<String>,
 }
 

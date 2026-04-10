@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
     let http_client = reqwest::Client::builder()
         .danger_accept_invalid_certs(!config.ssl_verify)
         .build()
-        .map_err(|e| error::RouterError::Network(e))?;
+        .map_err(error::RouterError::Network)?;
 
     // 创建 Providers
     let providers: Vec<Arc<dyn Provider>> = config

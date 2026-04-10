@@ -57,7 +57,8 @@ async fn chat_completions_handler(
                 state.routing_engine.health_tracker().record_success(&provider.name);
                 return Ok(Json(response));
             }
-            Err(_e) => {
+            Err(e) => {
+                tracing::warn!("Provider {} failed: {:?}, trying next...", provider.name, e);
                 state.routing_engine.health_tracker().record_failure(&provider.name);
                 // 继续尝试下一个 provider
             }
