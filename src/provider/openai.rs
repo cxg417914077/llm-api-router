@@ -2,14 +2,21 @@ use super::{ChatCompletionsRequest, ChatCompletionsResponse, Provider};
 use crate::config::ProviderConfig;
 use crate::error::RouterError;
 use async_trait::async_trait;
+use reqwest::Client;
 
 pub struct OpenAIProvider {
     config: ProviderConfig,
+    client: Client,
 }
 
 impl OpenAIProvider {
-    pub fn new(config: ProviderConfig) -> Self {
-        Self { config }
+    pub fn new(config: ProviderConfig) -> Result<Self, RouterError> {
+        let client = Client::builder()
+            .danger_accept_invalid_certs(!config.ssl_verify)
+            .build()
+            .map_err(RouterError::Network)?;
+
+        Ok(Self { config, client })
     }
 }
 
@@ -27,14 +34,19 @@ impl Provider for OpenAIProvider {
         self.config.priority
     }
 
+    fn ssl_verify(&self) -> bool {
+        self.config.ssl_verify
+    }
+
     async fn chat_completions(
         &self,
         request: ChatCompletionsRequest,
-        client: &reqwest::Client,
+        _client: &reqwest::Client,
     ) -> Result<ChatCompletionsResponse, RouterError> {
         let url = format!("{}/chat/completions", self.endpoint());
 
-        let response = client
+        let response = self
+            .client
             .post(&url)
             .header("Authorization", format!("Bearer {}", self.config.api_key))
             .header("Content-Type", "application/json")

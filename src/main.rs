@@ -56,13 +56,12 @@ async fn main() -> Result<()> {
         .map_err(error::RouterError::Network)?;
 
     // 创建 Providers
-    let providers: Vec<Arc<dyn Provider>> = default_group
-        .providers
-        .iter()
-        .map(|c| {
-            Arc::new(OpenAIProvider::new(c.clone())) as Arc<dyn Provider>
-        })
-        .collect();
+    let mut providers: Vec<Arc<dyn Provider>> = Vec::new();
+    for provider_config in &default_group.providers {
+        let provider = OpenAIProvider::new(provider_config.clone())
+            .map_err(|e| error::RouterError::Config(format!("Failed to create provider '{}': {}", provider_config.name, e)))?;
+        providers.push(Arc::new(provider) as Arc<dyn Provider>);
+    }
 
     tracing::info!("Initialized {} providers", providers.len());
 

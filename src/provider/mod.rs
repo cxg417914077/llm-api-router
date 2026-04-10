@@ -51,6 +51,7 @@ pub trait Provider: Send + Sync {
     fn name(&self) -> &str;
     fn endpoint(&self) -> &str;
     fn priority(&self) -> u32;
+    fn ssl_verify(&self) -> bool;
 
     async fn chat_completions(
         &self,
