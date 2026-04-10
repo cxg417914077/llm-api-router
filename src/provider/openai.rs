@@ -41,7 +41,6 @@ impl Provider for OpenAIProvider {
     async fn chat_completions(
         &self,
         request: ChatCompletionsRequest,
-        _client: &reqwest::Client,
     ) -> Result<ChatCompletionsResponse, RouterError> {
         let url = format!("{}/chat/completions", self.endpoint());
 

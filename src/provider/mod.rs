@@ -58,7 +58,6 @@ pub trait Provider: Send + Sync {
     async fn chat_completions(
         &self,
         request: ChatCompletionsRequest,
-        client: &reqwest::Client,
     ) -> Result<ChatCompletionsResponse, crate::error::RouterError>;
 }
 

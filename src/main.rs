@@ -26,8 +26,13 @@ async fn main() -> Result<()> {
     let config = Config::load()?;
     tracing::info!("Loaded config from config.yaml");
 
-    // 获取默认组（第一个组）
-    let default_group = config
+    // 验证至少有一个组
+    if config.groups.is_empty() {
+        return Err(crate::error::RouterError::Config("No provider groups configured".to_string()).into());
+    }
+
+    // 获取第一个组的故障转移配置用于健康追踪器
+    let first_group = config
         .groups
         .values()
         .next()
@@ -35,41 +40,29 @@ async fn main() -> Result<()> {
 
     // 创建健康追踪器
     let health_tracker = HealthTracker::new(
-        default_group.failover.failure_threshold,
-        default_group.failover.recovery_timeout,
+        first_group.failover.failure_threshold,
+        first_group.failover.recovery_timeout,
     );
 
     // 创建路由引擎
     let routing_engine = RoutingEngine::new(health_tracker);
 
-    // 获取第一个 provider 的 ssl_verify 作为 HTTP 客户端配置
-    let ssl_verify = default_group
-        .providers
-        .first()
-        .map(|p| p.ssl_verify)
-        .unwrap_or(true);
-
-    // 创建 HTTP 客户端
-    let http_client = reqwest::Client::builder()
-        .danger_accept_invalid_certs(!ssl_verify)
-        .build()
-        .map_err(error::RouterError::Network)?;
-
-    // 创建 Providers
+    // 创建 Providers（所有组的所有 providers）
     let mut providers: Vec<Arc<dyn Provider>> = Vec::new();
-    for provider_config in &default_group.providers {
-        let provider = OpenAIProvider::new(provider_config.clone())
-            .map_err(|e| error::RouterError::Config(format!("Failed to create provider '{}': {}", provider_config.name, e)))?;
-        providers.push(Arc::new(provider) as Arc<dyn Provider>);
+    for (group_name, group_config) in &config.groups {
+        for provider_config in &group_config.providers {
+            let provider = OpenAIProvider::new(provider_config.clone())
+                .map_err(|e| error::RouterError::Config(format!("Failed to create provider '{}.{}': {}", group_name, provider_config.name, e)))?;
+            providers.push(Arc::new(provider) as Arc<dyn Provider>);
+        }
     }
 
-    tracing::info!("Initialized {} providers", providers.len());
+    tracing::info!("Initialized {} providers across {} groups", providers.len(), config.groups.len());
 
     // 创建应用状态
     let state = Arc::new(AppState {
         config: config.clone(),
         routing_engine,
-        http_client,
         providers,
     });
 

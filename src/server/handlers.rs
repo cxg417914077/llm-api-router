@@ -15,7 +15,6 @@ use crate::server::auth::auth_middleware;
 pub struct AppState {
     pub config: Config,
     pub routing_engine: RoutingEngine,
-    pub http_client: reqwest::Client,
     pub providers: Vec<Arc<dyn Provider>>,
 }
 
@@ -67,7 +66,7 @@ async fn chat_completions_handler(
             .find(|p| p.name() == provider.name)
             .ok_or_else(|| crate::error::RouterError::ProviderNotFound(provider.name.clone()))?;
 
-        match provider_impl.chat_completions(request.clone(), &state.http_client).await {
+        match provider_impl.chat_completions(request.clone()).await {
             Ok(response) => {
                 state.routing_engine.health_tracker().record_success(group_name, &provider.name);
                 return Ok(Json(response));
