@@ -58,9 +58,7 @@ impl HealthTracker {
     pub fn record_success(&self, group: &str, provider_name: &str, model: &str) {
         let key = ProviderKey::new(group, provider_name, model);
         let mut providers = self.providers.lock().unwrap();
-        let health = providers
-            .entry(key)
-            .or_insert_with(ProviderHealth::new);
+        let health = providers.entry(key).or_insert_with(ProviderHealth::new);
         health.failure_count = 0;
         health.is_healthy = true;
     }
@@ -68,9 +66,7 @@ impl HealthTracker {
     pub fn record_failure(&self, group: &str, provider_name: &str, model: &str) {
         let key = ProviderKey::new(group, provider_name, model);
         let mut providers = self.providers.lock().unwrap();
-        let health = providers
-            .entry(key)
-            .or_insert_with(ProviderHealth::new);
+        let health = providers.entry(key).or_insert_with(ProviderHealth::new);
         health.failure_count += 1;
         health.last_failure_time = Some(Instant::now());
 
@@ -82,9 +78,7 @@ impl HealthTracker {
     pub fn is_healthy(&self, group: &str, provider_name: &str, model: &str) -> bool {
         let key = ProviderKey::new(group, provider_name, model);
         let mut providers = self.providers.lock().unwrap();
-        let health = providers
-            .entry(key)
-            .or_insert_with(ProviderHealth::new);
+        let health = providers.entry(key).or_insert_with(ProviderHealth::new);
 
         // 检查是否应该恢复健康
         if !health.is_healthy {
@@ -98,5 +92,4 @@ impl HealthTracker {
 
         health.is_healthy
     }
-
 }

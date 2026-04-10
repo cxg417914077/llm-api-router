@@ -106,9 +106,21 @@ groups:
     assert!(config["groups"]["staging"].is_mapping());
 
     // 验证 production 组配置
-    assert_eq!(config["groups"]["production"]["failover"]["failure_threshold"], 5);
-    assert_eq!(config["groups"]["production"]["failover"]["recovery_timeout"], 30);
-    assert_eq!(config["groups"]["production"]["providers"].as_sequence().unwrap().len(), 2);
+    assert_eq!(
+        config["groups"]["production"]["failover"]["failure_threshold"],
+        5
+    );
+    assert_eq!(
+        config["groups"]["production"]["failover"]["recovery_timeout"],
+        30
+    );
+    assert_eq!(
+        config["groups"]["production"]["providers"]
+            .as_sequence()
+            .unwrap()
+            .len(),
+        2
+    );
 
     // 验证 provider 配置
     let primary = &config["groups"]["production"]["providers"][0];

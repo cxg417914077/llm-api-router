@@ -1,19 +1,19 @@
 mod config;
 mod error;
 mod health;
-mod routing;
 mod provider;
+mod routing;
 mod server;
 
 use std::sync::Arc;
 use tracing_subscriber::EnvFilter;
 
 use config::Config;
+use error::Result;
 use health::HealthTracker;
+use provider::{openai::OpenAIProvider, Provider};
 use routing::RoutingEngine;
 use server::{create_router, AppState};
-use provider::{Provider, openai::OpenAIProvider};
-use error::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -28,15 +28,15 @@ async fn main() -> Result<()> {
 
     // 验证至少有一个组
     if config.groups.is_empty() {
-        return Err(crate::error::RouterError::Config("No provider groups configured".to_string()));
+        return Err(crate::error::RouterError::Config(
+            "No provider groups configured".to_string(),
+        ));
     }
 
     // 获取第一个组的故障转移配置用于健康追踪器
-    let first_group = config
-        .groups
-        .values()
-        .next()
-        .ok_or_else(|| crate::error::RouterError::Config("No provider groups configured".to_string()))?;
+    let first_group = config.groups.values().next().ok_or_else(|| {
+        crate::error::RouterError::Config("No provider groups configured".to_string())
+    })?;
 
     // 创建健康追踪器
     let health_tracker = HealthTracker::new(
@@ -51,13 +51,21 @@ async fn main() -> Result<()> {
     let mut providers: Vec<Arc<dyn Provider>> = Vec::new();
     for (group_name, group_config) in &config.groups {
         for provider_config in &group_config.providers {
-            let provider = OpenAIProvider::new(provider_config.clone())
-                .map_err(|e| error::RouterError::Config(format!("Failed to create provider '{}.{}': {}", group_name, provider_config.name, e)))?;
+            let provider = OpenAIProvider::new(provider_config.clone()).map_err(|e| {
+                error::RouterError::Config(format!(
+                    "Failed to create provider '{}.{}': {}",
+                    group_name, provider_config.name, e
+                ))
+            })?;
             providers.push(Arc::new(provider) as Arc<dyn Provider>);
         }
     }
 
-    tracing::info!("Initialized {} providers across {} groups", providers.len(), config.groups.len());
+    tracing::info!(
+        "Initialized {} providers across {} groups",
+        providers.len(),
+        config.groups.len()
+    );
 
     // 创建应用状态
     let state = Arc::new(AppState {

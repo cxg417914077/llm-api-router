@@ -1,6 +1,6 @@
 use serde::Deserialize;
-use std::env;
 use std::collections::HashMap;
+use std::env;
 
 use crate::error::Result;
 
@@ -76,13 +76,15 @@ impl Config {
     pub fn load() -> Result<Self> {
         dotenvy::dotenv().ok();
 
-        let config_path = std::env::var("CONFIG_PATH")
-            .unwrap_or_else(|_| "config.yaml".to_string());
+        let config_path =
+            std::env::var("CONFIG_PATH").unwrap_or_else(|_| "config.yaml".to_string());
 
-        let content = std::fs::read_to_string(&config_path)
-            .map_err(|e| crate::error::RouterError::Config(format!("Failed to read config file: {}", e)))?;
-        let mut config: Config = serde_yaml::from_str(&content)
-            .map_err(|e| crate::error::RouterError::Config(format!("Failed to parse config: {}", e)))?;
+        let content = std::fs::read_to_string(&config_path).map_err(|e| {
+            crate::error::RouterError::Config(format!("Failed to read config file: {}", e))
+        })?;
+        let mut config: Config = serde_yaml::from_str(&content).map_err(|e| {
+            crate::error::RouterError::Config(format!("Failed to parse config: {}", e))
+        })?;
 
         // 展开环境变量
         for group in config.groups.values_mut() {

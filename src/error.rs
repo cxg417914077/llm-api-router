@@ -34,7 +34,9 @@ impl IntoResponse for RouterError {
             RouterError::Config(_) => StatusCode::INTERNAL_SERVER_ERROR,
             RouterError::Network(_) => StatusCode::BAD_GATEWAY,
             RouterError::Io(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            RouterError::HttpError { status, .. } => StatusCode::from_u16(*status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+            RouterError::HttpError { status, .. } => {
+                StatusCode::from_u16(*status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+            }
             RouterError::RateLimit => StatusCode::TOO_MANY_REQUESTS,
             RouterError::ContextLengthExceeded => StatusCode::BAD_REQUEST,
             RouterError::AllProvidersFailed => StatusCode::BAD_GATEWAY,
