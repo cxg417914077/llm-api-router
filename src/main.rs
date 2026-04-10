@@ -28,7 +28,7 @@ async fn main() -> Result<()> {
 
     // 验证至少有一个组
     if config.groups.is_empty() {
-        return Err(crate::error::RouterError::Config("No provider groups configured".to_string()).into());
+        return Err(crate::error::RouterError::Config("No provider groups configured".to_string()));
     }
 
     // 获取第一个组的故障转移配置用于健康追踪器
