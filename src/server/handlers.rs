@@ -105,7 +105,7 @@ async fn chat_completions_handler(
         let mut model_for_downstream: Option<String> = None;
 
         for i in 0..provider.models.len() {
-            let model_idx = (0 + i) % provider.models.len();  // 循环遍历
+            let model_idx = i % provider.models.len();  // 循环遍历
             let model = &provider.models[model_idx];
 
             // 检查这个 model 是否健康
