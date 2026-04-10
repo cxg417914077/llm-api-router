@@ -25,3 +25,4 @@ config.local.yaml
 *.gcda
 *.gcno
 lcov.info
+docs/superpowers/
