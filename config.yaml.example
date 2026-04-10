@@ -1,0 +1,26 @@
+# 服务器配置
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+# SSL 验证（全局开关，适用于所有下游请求）
+ssl_verify: true
+
+# 故障转移配置
+failover:
+  failure_threshold: 3
+  recovery_timeout: 60
+
+# 提供商列表（按优先级排序）
+providers:
+  - name: "primary"
+    endpoint: "https://api.openai.com/v1"
+    api_key: "${OPENAI_API_KEY}"
+    priority: 1
+    models: ["gpt-4", "gpt-3.5-turbo"]
+
+  - name: "local"
+    endpoint: "http://localhost:8000/v1"
+    api_key: "not-needed"
+    priority: 2
+    models: ["*"]

@@ -1,0 +1,2 @@
+fn(State<Arc<AppState>>, Json<ChatCompletionsRequest>) -> impl Future<Output = std::result::Result<Json<ChatCompletionsResponse>, RouterError>> {chat_completions_handler}
+fn(State<Arc<AppState>>, Json<ChatCompletionsRequest>) -> impl Future<Output = std::result::Result<Json<ChatCompletionsResponse>, RouterError>> {chat_completions_handler}: Handler<_, _>
