@@ -19,19 +19,21 @@ impl ProviderHealth {
     }
 }
 
-/// ProviderKey 用于唯一标识 (group, provider) 对
-/// 同一个 Provider 名称可能在不同组中重复出现
+/// ProviderKey 用于唯一标识 (group, provider, model) 三元组
+/// 同一个 Provider 名称可能在不同组中重复出现，同一个 Provider 的不同 model 也需要独立追踪
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct ProviderKey {
     pub group: String,
     pub provider: String,
+    pub model: String,
 }
 
 impl ProviderKey {
-    pub fn new(group: &str, provider: &str) -> Self {
+    pub fn new(group: &str, provider: &str, model: &str) -> Self {
         Self {
             group: group.to_string(),
             provider: provider.to_string(),
+            model: model.to_string(),
         }
     }
 }
@@ -40,6 +42,7 @@ impl ProviderKey {
 pub struct HealthTracker {
     providers: Arc<Mutex<HashMap<ProviderKey, ProviderHealth>>>,
     failure_threshold: u32,
+    #[allow(dead_code)]
     recovery_timeout: u64,
 }
 
@@ -52,8 +55,8 @@ impl HealthTracker {
         }
     }
 
-    pub fn record_success(&self, group: &str, provider_name: &str) {
-        let key = ProviderKey::new(group, provider_name);
+    pub fn record_success(&self, group: &str, provider_name: &str, model: &str) {
+        let key = ProviderKey::new(group, provider_name, model);
         let mut providers = self.providers.lock().unwrap();
         let health = providers
             .entry(key)
@@ -62,8 +65,8 @@ impl HealthTracker {
         health.is_healthy = true;
     }
 
-    pub fn record_failure(&self, group: &str, provider_name: &str) {
-        let key = ProviderKey::new(group, provider_name);
+    pub fn record_failure(&self, group: &str, provider_name: &str, model: &str) {
+        let key = ProviderKey::new(group, provider_name, model);
         let mut providers = self.providers.lock().unwrap();
         let health = providers
             .entry(key)
@@ -76,8 +79,8 @@ impl HealthTracker {
         }
     }
 
-    pub fn is_healthy(&self, group: &str, provider_name: &str) -> bool {
-        let key = ProviderKey::new(group, provider_name);
+    pub fn is_healthy(&self, group: &str, provider_name: &str, model: &str) -> bool {
+        let key = ProviderKey::new(group, provider_name, model);
         let mut providers = self.providers.lock().unwrap();
         let health = providers
             .entry(key)
@@ -96,11 +99,4 @@ impl HealthTracker {
         health.is_healthy
     }
 
-    pub fn get_healthy_providers(&self, group: &str, all_providers: &[String]) -> Vec<String> {
-        all_providers
-            .iter()
-            .filter(|name| self.is_healthy(group, name))
-            .cloned()
-            .collect()
-    }
 }

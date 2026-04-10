@@ -19,7 +19,7 @@ use error::Result;
 async fn main() -> Result<()> {
     // 初始化日志
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
+        .with_env_filter(EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into()))
         .init();
 
     // 加载配置

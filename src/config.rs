@@ -49,7 +49,6 @@ pub struct ProviderConfig {
     #[serde(default = "default_ssl_verify")]
     pub ssl_verify: bool,
     #[serde(default)]
-    #[allow(dead_code)]
     pub models: Vec<String>,
 }
 

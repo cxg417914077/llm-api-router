@@ -1,0 +1,27 @@
+# Rust
+/target/
+**/target/
+
+# Environment
+.env
+.env.local
+
+# Config
+config.yaml
+config.local.yaml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Coverage
+*.gcda
+*.gcno
+lcov.info
