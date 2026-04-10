@@ -1,5 +1,6 @@
 use axum::{
     extract::State,
+    middleware,
     routing::post,
     Json, Router,
 };
@@ -9,6 +10,7 @@ use crate::config::Config;
 use crate::error::Result;
 use crate::provider::{ChatCompletionsRequest, ChatCompletionsResponse, Provider};
 use crate::routing::RoutingEngine;
+use crate::server::auth::auth_middleware;
 
 pub struct AppState {
     pub config: Config,
@@ -20,6 +22,7 @@ pub struct AppState {
 pub fn create_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/v1/chat/completions", post(chat_completions_handler))
+        .layer(middleware::from_fn_with_state(state, auth_middleware))
         .with_state(state)
 }
 
