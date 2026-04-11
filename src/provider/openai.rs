@@ -69,7 +69,19 @@ impl Provider for OpenAIProvider {
             return Err(RouterError::HttpError { status, body });
         }
 
-        let response: ChatCompletionsResponse = response.json().await?;
+        // 先获取原始文本，方便调试
+        let body = response.text().await.unwrap_or_default();
+        tracing::info!("下游响应体：{}", body);
+
+        // 尝试解析 JSON
+        let response: ChatCompletionsResponse = serde_json::from_str(&body)
+            .map_err(|e| {
+                tracing::error!("JSON 解析失败：{}, 响应体：{}", e, body);
+                RouterError::HttpError {
+                    status,
+                    body: format!("JSON 解析失败：{}, 响应体：{}", e, body),
+                }
+            })?;
         Ok(response)
     }
 }
