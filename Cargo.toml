@@ -10,7 +10,11 @@ axum = { version = "0.7", features = ["macros"] }
 tokio = { version = "1", features = ["full"] }
 
 # HTTP 客户端
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", features = ["json", "stream"] }
+
+# futures 工具
+futures-util = "0.3"
+pin-project-lite = "0.2"
 
 # 序列化
 serde = { version = "1", features = ["derive"] }
@@ -32,6 +36,10 @@ thiserror = "1"
 
 # 额外 Axum 功能
 axum-extra = { version = "0.9", features = ["typed-header"] }
+
+# 流处理
+tokio-stream = "0.1"
+futures = "0.3"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full", "test-util"] }

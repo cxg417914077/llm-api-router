@@ -26,6 +26,9 @@ pub enum RouterError {
 
     #[error("Provider not found: {0}")]
     ProviderNotFound(String),
+
+    #[error("Not found: {0}")]
+    NotFound(String),
 }
 
 impl IntoResponse for RouterError {
@@ -41,6 +44,7 @@ impl IntoResponse for RouterError {
             RouterError::ContextLengthExceeded => StatusCode::BAD_REQUEST,
             RouterError::AllProvidersFailed => StatusCode::BAD_GATEWAY,
             RouterError::ProviderNotFound(_) => StatusCode::NOT_FOUND,
+            RouterError::NotFound(_) => StatusCode::NOT_FOUND,
         };
 
         (status, format!("{:?}", self)).into_response()
